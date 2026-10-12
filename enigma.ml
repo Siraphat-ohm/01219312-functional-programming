@@ -25,8 +25,19 @@ let map_r_to_l wiring top_letter input_pos =
     |> index
     |> fun contact -> wrap ( contact - offset )
 
-let map_l_to_r _wiring _top_letter _input_pos =
-  failwith "Unimplemented"
+(** [char_of_index i] is the uppercase letter at alphabet position [i].
+    Requires: [i] is in 0..25. *)
+let char_of_index i = Char.chr (i + Char.code 'A')
+
+(** [map_l_to_r wiring top_letter input_pos] is the output position when
+    current enters a rotor from the left at [input_pos]. This is the inverse
+    of [map_r_to_l]. Requires: [wiring] is valid and [input_pos] is in 0..25. *)
+let map_l_to_r wiring top_letter input_pos =
+  let offset = index top_letter in
+  wrap (input_pos + offset)
+  |> char_of_index
+  |> String.index wiring
+  |> fun contact -> wrap (contact - offset)
 
 let map_refl _wiring _input_pos =
   failwith "Unimplemented"
