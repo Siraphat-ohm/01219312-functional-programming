@@ -20,6 +20,13 @@ let map_l_to_r_test name wiring top_letter input_pos expected =
     assert_equal ~printer:string_of_int expected
       (map_l_to_r wiring top_letter input_pos)
 
+let reflector_B = "YRUHQSLDPXNGOKMIEBFZCWVJAT"
+let reflector_C = "FVPJIAOYEDRZXWGCTKUQSBNMHL"
+
+let map_refl_test name wiring input_pos expected =
+  name >:: fun _ ->
+    assert_equal ~printer:string_of_int expected (map_refl wiring input_pos)
+
 let suite =
   "Enigma test suite" >::: [
     index_test "index of A is 0" 'A' 0;
@@ -47,6 +54,17 @@ let suite =
     map_l_to_r_test "rotor I, top A maps 25 to 9 (last contact)" rotor_I 'A' 25 9;
     map_l_to_r_test "rotor I, top B maps 25 to 19 (contact wraps past Z)" rotor_I 'B' 25 19;
     map_l_to_r_test "rotor III, top O maps 17 to 14 (inverse of map_r_to_l)" rotor_III 'O' 17 14;
+
+    map_refl_test "identity reflector maps 0 to 0" identity 0 0;
+    map_refl_test "identity reflector maps 1 to 1" identity 1 1;
+    map_refl_test "identity reflector maps 25 to 25" identity 25 25;
+    map_refl_test "swap AB reflector maps 0 to 1" swap_ab 0 1;
+    map_refl_test "swap AB reflector maps 1 to 0" swap_ab 1 0;
+    map_refl_test "reflector B maps 0 to 24" reflector_B 0 24;
+    map_refl_test "reflector B maps 24 to 0 (symmetric)" reflector_B 24 0;
+    map_refl_test "reflector B maps 5 to 18" reflector_B 5 18;
+    map_refl_test "reflector B maps 25 to 19" reflector_B 25 19;
+    map_refl_test "reflector C maps 0 to 5" reflector_C 0 5;
   ]
 
 let () = run_test_tt_main suite
