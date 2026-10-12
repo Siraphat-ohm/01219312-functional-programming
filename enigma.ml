@@ -16,8 +16,14 @@ type config = {
 
 let index (c : char) : int = Char.code c - Char.code 'A'
 
-let map_r_to_l _wiring _top_letter _input_pos =
-  failwith "Unimplemented"
+let wrap n = ( ( n mod 26) + 26  ) mod 26
+
+let map_r_to_l wiring top_letter input_pos =
+  let offset = index top_letter in
+    wrap ( input_pos + offset )
+    |> String.get wiring
+    |> index
+    |> fun contact -> wrap ( contact - offset )
 
 let map_l_to_r _wiring _top_letter _input_pos =
   failwith "Unimplemented"
