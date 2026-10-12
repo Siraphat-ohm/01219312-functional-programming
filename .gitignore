@@ -1,0 +1,61 @@
+# --- OCaml / dune build output ---
+_build/
+*.install
+.merlin
+_opam/
+
+# Artifacts from running ocamlc/ocamlopt by hand
+*.cmi
+*.cmo
+*.cmx
+*.cmxa
+*.cma
+*.cmxs
+*.cmt
+*.cmti
+*.annot
+*.o
+*.a
+*.exe
+
+# OUnit2 and dune logs
+oUnit-*.log
+oUnit-*.cache
+*.log
+
+# --- Editors ---
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+\#*#
+.#*
+
+# --- OS files ---
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Local secrets (never commit) ---
+.env
+.env.*
+*.pem
+*.key
+secrets/
+
+# --- Scratch files ---
+scratch/
+tmp/
+*.tmp
+*.bak
+*.orig
+
+# --- Personal study material (not part of the assignment) ---
+lessons/
+reference/
+assets/
+learning-records/
+MISSION.md
+NOTES.md
+RESOURCES.md
