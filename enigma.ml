@@ -74,8 +74,25 @@ let cipher_char config c =
   |> char_of_index
   |> map_plug config.plugboard
 
-let step _config =
-  failwith "Unimplemented"
+(** [at_turnover r] is whether [r] currently shows its turnover letter. *)
+let at_turnover r = r.top_letter = r.rotor.turnover
+
+(** [advance r] is [r] turned forward by one letter, wrapping Z to A. *)
+let advance r =
+  { r with top_letter = char_of_index (wrap (index r.top_letter + 1)) }
+
+(** [step config] is [config] after one key press. Rotor [i] (counting from
+    the left) steps if it is the rightmost, if the rotor to its right shows its
+    turnover letter, or if it is a non-leftmost rotor showing its own turnover
+    letter (the double step). Each rotor steps at most once. *)
+let step config =
+  let rotors = Array.of_list config.rotors in
+  let last = Array.length rotors - 1 in
+  let steps i =
+    i = last || at_turnover rotors.(i + 1) || (i > 0 && at_turnover rotors.(i))
+  in
+  { config with
+    rotors = List.mapi (fun i r -> if steps i then advance r else r) config.rotors }
 
 let cipher _config _s =
   failwith "Unimplemented"
