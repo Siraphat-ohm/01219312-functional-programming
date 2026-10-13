@@ -108,4 +108,4 @@ let cipher config s =
   in
   rev_chars |> List.rev |> List.to_seq |> String.of_seq
 
-let hours_worked = 0
+let hours_worked = 10
