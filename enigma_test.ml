@@ -64,6 +64,10 @@ let step_test name (l, m, r) expected =
     assert_equal ~printer:(fun s -> s) expected
       (tops (step (machine reflector_B (l, m, r) [])))
 
+let cipher_test name config input expected =
+  name >:: fun _ ->
+    assert_equal ~printer:(fun s -> s) expected (cipher config input)
+
 let suite =
   "Enigma test suite" >::: [
     index_test "index of A is 0" 'A' 0;
@@ -148,6 +152,23 @@ let suite =
       assert_equal (before.refl, before.plugboard,
                     List.map (fun r -> r.rotor) before.rotors)
         (after.refl, after.plugboard, List.map (fun r -> r.rotor) after.rotors));
+
+    cipher_test "empty string stays empty" reflector_B_AAA "" "";
+    cipher_test "rotors step before the first letter, so A at AAA gives B" reflector_B_AAA "A" "B";
+    cipher_test "the same letter changes as the rotors turn" reflector_B_AAA "AAAAA" "BDZGO";
+    cipher_test "HELLO at AAA is ILBDA" reflector_B_AAA "HELLO" "ILBDA";
+    cipher_test "rotors at FUN with plugboard AZ turn YNGXQ into OCAML" reflector_B_FUN_AZ "YNGXQ" "OCAML";
+    cipher_test "plugboard AZ is applied on every letter" reflector_B_AAA_AZ "ENIGMA" "FQGZHG";
+    cipher_test "stepping carries through a turnover while ciphering"
+      (machine reflector_B ('A', 'E', 'V') []) "AB" "GW";
+    "cipher with the same settings decrypts its own output" >:: (fun _ ->
+      let msg = "THEQUICKBROWNFOXJUMPSOVERTHELAZYDOG" in
+      assert_equal ~printer:(fun s -> s) msg
+        (cipher reflector_B_FUN_AZ (cipher reflector_B_FUN_AZ msg)));
+    "cipher never maps a letter to itself" >:: (fun _ ->
+      let msg = String.make 60 'A' in
+      assert_bool "a letter mapped to itself"
+        (not (String.contains (cipher reflector_B_AAA msg) 'A')));
   ]
 
 let () = run_test_tt_main suite
