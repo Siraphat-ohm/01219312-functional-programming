@@ -49,8 +49,30 @@ let rec  map_plug plugs c = match plugs with
   | [] -> c
   | (a, b) :: rest -> if c = a then b else if c = b then a else map_plug rest c
 
-let cipher_char _config _c =
-  failwith "Unimplemented"
+(** [through_rotors map rotors pos] sends [pos] through [rotors] in the order
+    given, applying [map wiring top_letter pos] at each one. *)
+let through_rotors map rotors pos =
+  List.fold_left
+    (fun pos { rotor; top_letter } -> map rotor.wiring top_letter pos)
+    pos rotors
+
+(** [map_rotors_r_to_l rotors pos] is where current entering at [pos] on the
+    right leaves the stack on the left. [rotors] are listed left to right. *)
+let map_rotors_r_to_l rotors pos = through_rotors map_r_to_l (List.rev rotors) pos
+
+(** [map_rotors_l_to_r rotors pos] is where current entering at [pos] on the
+    left leaves the stack on the right. [rotors] are listed left to right. *)
+let map_rotors_l_to_r rotors pos = through_rotors map_l_to_r rotors pos
+
+let cipher_char config c =
+  c
+  |> map_plug config.plugboard
+  |> index
+  |> map_rotors_r_to_l config.rotors
+  |> map_refl config.refl
+  |> map_rotors_l_to_r config.rotors
+  |> char_of_index
+  |> map_plug config.plugboard
 
 let step _config =
   failwith "Unimplemented"
