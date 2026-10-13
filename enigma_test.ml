@@ -55,6 +55,15 @@ let cipher_char_test name config input expected =
 
 let alphabet = List.init 26 (fun i -> Char.chr (Char.code 'A' + i))
 
+(** [tops config] is the top letters of [config]'s rotors, left to right. *)
+let tops config =
+  String.concat "" (List.map (fun r -> String.make 1 r.top_letter) config.rotors)
+
+let step_test name (l, m, r) expected =
+  name >:: fun _ ->
+    assert_equal ~printer:(fun s -> s) expected
+      (tops (step (machine reflector_B (l, m, r) [])))
+
 let suite =
   "Enigma test suite" >::: [
     index_test "index of A is 0" 'A' 0;
@@ -121,6 +130,24 @@ let suite =
         (List.for_all
            (fun c -> cipher_char reflector_B_FUN_AZ (cipher_char reflector_B_FUN_AZ c) = c)
            alphabet));
+
+    step_test "rule 1: right rotor steps AAA to AAB" ('A', 'A', 'A') "AAB";
+    step_test "rule 1: right rotor wraps Z to A without a turnover" ('A', 'A', 'Z') "AAA";
+    step_test "rule 2: right rotor at its turnover V carries the middle rotor" ('A', 'A', 'V') "ABW";
+    step_test "rule 2: middle rotor at its turnover E carries the left rotor too" ('A', 'E', 'W') "BFX";
+    step_test "double step: ADU to ADV" ('A', 'D', 'U') "ADV";
+    step_test "double step: ADV to AEW" ('A', 'D', 'V') "AEW";
+    step_test "double step: AEW to BFX" ('A', 'E', 'W') "BFX";
+    step_test "rule 3: no rotor steps twice when both turnovers show" ('A', 'E', 'V') "BFW";
+    step_test "left rotor at its own turnover Q does not step anything else" ('Q', 'A', 'A') "QAB";
+    "step with no rotors changes nothing" >:: (fun _ ->
+      assert_equal bare_machine (step bare_machine));
+    "step keeps the reflector, wiring and plugboard" >:: (fun _ ->
+      let before = machine reflector_B ('A', 'A', 'A') [('A', 'Z')] in
+      let after = step before in
+      assert_equal (before.refl, before.plugboard,
+                    List.map (fun r -> r.rotor) before.rotors)
+        (after.refl, after.plugboard, List.map (fun r -> r.rotor) after.rotors));
   ]
 
 let () = run_test_tt_main suite
