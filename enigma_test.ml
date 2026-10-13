@@ -27,6 +27,10 @@ let map_refl_test name wiring input_pos expected =
   name >:: fun _ ->
     assert_equal ~printer:string_of_int expected (map_refl wiring input_pos)
 
+let map_plug_test name plugs input expected =
+  name >:: fun _ ->
+    assert_equal ~printer:(String.make 1) expected (map_plug plugs input)
+
 let suite =
   "Enigma test suite" >::: [
     index_test "index of A is 0" 'A' 0;
@@ -65,6 +69,17 @@ let suite =
     map_refl_test "reflector B maps 5 to 18" reflector_B 5 18;
     map_refl_test "reflector B maps 25 to 19" reflector_B 25 19;
     map_refl_test "reflector C maps 0 to 5" reflector_C 0 5;
+
+    map_plug_test "empty plugboard leaves M unchanged" [] 'M' 'M';
+    map_plug_test "plugboard AZ maps A to Z" [('A', 'Z')] 'A' 'Z';
+    map_plug_test "plugboard AZ maps Z to A" [('A', 'Z')] 'Z' 'A';
+    map_plug_test "plugboard AZ leaves M unchanged" [('A', 'Z')] 'M' 'M';
+    map_plug_test "plugboard AZ XY maps X to Y" [('A', 'Z'); ('X', 'Y')] 'X' 'Y';
+    map_plug_test "plugboard AZ XY maps Y to X" [('A', 'Z'); ('X', 'Y')] 'Y' 'X';
+    map_plug_test "plugboard AZ XY maps A to Z" [('A', 'Z'); ('X', 'Y')] 'A' 'Z';
+    map_plug_test "plugboard AZ XY leaves G unchanged" [('A', 'Z'); ('X', 'Y')] 'G' 'G';
+    map_plug_test "pair order within a cable does not matter" [('Z', 'A')] 'A' 'Z';
+    map_plug_test "order of cables does not matter" [('Y', 'X'); ('Z', 'A')] 'Z' 'A';
   ]
 
 let () = run_test_tt_main suite
