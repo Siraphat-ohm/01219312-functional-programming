@@ -94,7 +94,18 @@ let step config =
   { config with
     rotors = List.mapi (fun i r -> if steps i then advance r else r) config.rotors }
 
-let cipher _config _s =
-  failwith "Unimplemented"
+(** [cipher config s] is [s] run through the machine, one letter at a time.
+    The rotors step before each letter, and each step starts from the
+    configuration the previous letter left behind. Requires: [s] is uppercase
+    letters only. *)
+let cipher config s =
+  let _, rev_chars =
+    String.fold_left
+      (fun (config, acc) c ->
+        let config = step config in
+        (config, cipher_char config c :: acc))
+      (config, []) s
+  in
+  rev_chars |> List.rev |> List.to_seq |> String.of_seq
 
 let hours_worked = 0
