@@ -31,6 +31,30 @@ let map_plug_test name plugs input expected =
   name >:: fun _ ->
     assert_equal ~printer:(String.make 1) expected (map_plug plugs input)
 
+let hist_I = { wiring = rotor_I; turnover = 'Q' }
+let hist_II = { wiring = "AJDKSIRUXBLHWTMCQGZNPYFVOE"; turnover = 'E' }
+let hist_III = { wiring = rotor_III; turnover = 'V' }
+
+let oriented rotor top_letter = { rotor; top_letter }
+
+(** [machine refl tops plugboard] has rotors I, II, III from left to right,
+    showing the top letters [tops]. *)
+let machine refl (left, middle, right) plugboard =
+  { refl;
+    rotors = [oriented hist_I left; oriented hist_II middle; oriented hist_III right];
+    plugboard }
+
+let bare_machine = { refl = identity; rotors = []; plugboard = [] }
+let reflector_B_AAA = machine reflector_B ('A', 'A', 'A') []
+let reflector_B_AAA_AZ = machine reflector_B ('A', 'A', 'A') [('A', 'Z')]
+let reflector_B_FUN_AZ = machine reflector_B ('F', 'U', 'N') [('A', 'Z')]
+
+let cipher_char_test name config input expected =
+  name >:: fun _ ->
+    assert_equal ~printer:(String.make 1) expected (cipher_char config input)
+
+let alphabet = List.init 26 (fun i -> Char.chr (Char.code 'A' + i))
+
 let suite =
   "Enigma test suite" >::: [
     index_test "index of A is 0" 'A' 0;
@@ -80,6 +104,23 @@ let suite =
     map_plug_test "plugboard AZ XY leaves G unchanged" [('A', 'Z'); ('X', 'Y')] 'G' 'G';
     map_plug_test "pair order within a cable does not matter" [('Z', 'A')] 'A' 'Z';
     map_plug_test "order of cables does not matter" [('Y', 'X'); ('Z', 'A')] 'Z' 'A';
+
+    cipher_char_test "no rotors, identity reflector maps A to A" bare_machine 'A' 'A';
+    cipher_char_test "no rotors, identity reflector maps Z to Z" bare_machine 'Z' 'Z';
+    cipher_char_test "plugboard AZ swaps A on the way in and back on the way out"
+      { bare_machine with plugboard = [('A', 'Z')] } 'A' 'A';
+    cipher_char_test "rotors I II III at AAA, reflector B map G to P" reflector_B_AAA 'G' 'P';
+    cipher_char_test "rotors I II III at AAA, reflector B map A to U" reflector_B_AAA 'A' 'U';
+    cipher_char_test "rotors I II III at AAA, reflector B map Z to H" reflector_B_AAA 'Z' 'H';
+    cipher_char_test "plugboard AZ turns A into Z before the rotors" reflector_B_AAA_AZ 'A' 'H';
+    cipher_char_test "plugboard AZ turns the rotor output Z into A" reflector_B_AAA_AZ 'H' 'A';
+    cipher_char_test "rotors at FUN with plugboard AZ map G to D" reflector_B_FUN_AZ 'G' 'D';
+    cipher_char_test "rotors at FUN with plugboard AZ map A to E" reflector_B_FUN_AZ 'A' 'E';
+    "cipher_char is its own inverse for every letter at FUN with plugboard AZ" >:: (fun _ ->
+      assert_bool "some letter did not round trip"
+        (List.for_all
+           (fun c -> cipher_char reflector_B_FUN_AZ (cipher_char reflector_B_FUN_AZ c) = c)
+           alphabet));
   ]
 
 let () = run_test_tt_main suite
