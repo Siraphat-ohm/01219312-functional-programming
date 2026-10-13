@@ -39,8 +39,11 @@ let map_l_to_r wiring top_letter input_pos =
   |> String.index wiring
   |> fun contact -> wrap (contact - offset)
 
-let map_refl _wiring _input_pos =
-  failwith "Unimplemented"
+(** [map_refl wiring input_pos] is the position a reflector with [wiring]
+    sends [input_pos] to. A reflector never rotates, so it behaves like a
+    rotor with top letter ['A']. Requires: [wiring] is a valid reflector
+    wiring and [input_pos] is in 0..25. *)
+let map_refl wiring input_pos = map_r_to_l wiring 'A' input_pos
 
 let map_plug _plugs _c =
   failwith "Unimplemented"
